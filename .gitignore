@@ -1,0 +1,20 @@
+﻿# файлы игры и всё, что из неё извлечено, в репозиторий не попадает
+*.locres
+*.pak
+*.utoc
+*.ucas
+*.usmap
+*.x5tr
+*.exe
+*.dll
+*.zip
+bin/
+obj/
+game-data/
+dump/
+work/
+batches/
+releases/
+project/
+*aes*
+*key-result*

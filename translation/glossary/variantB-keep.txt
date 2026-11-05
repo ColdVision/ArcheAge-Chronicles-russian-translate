@@ -1,0 +1,16 @@
+# Регулярные выражения по ключам: в варианте B эти строки остаются английскими (названия предметов, локаций, умений).
+^TXT_ITEM_\d+_NAME$
+^TXT_ZONE_
+^TXT_PERKNODE_\d+_NAME$
+^TXT_STATUSEFFECT_\d+_NAME$
+^TXT_COOKRECIPE_\d+_NAME$
+# имена NPC и говорящих (вариант B: NPC и фракции английские)
+^TXT_NPC_\d+_NAME$
+^TXT_NPC_\d+_NICKNAME$
+^TXT_NPCGROUP_\d+_NAME$
+^TXT_[A-Z]+_[\d_]*CHANGESPEAKERNAME$
+^TXT_DISCOVERYCONDITION_
+^TXT_RANKING_
+^TXT_TRADINGPOST_\d+_NAME$
+^TXT_QUESTJOBBOARD_\d+_NAME$
+^TXT_FLIGHTTOOL_\d+_NAME$

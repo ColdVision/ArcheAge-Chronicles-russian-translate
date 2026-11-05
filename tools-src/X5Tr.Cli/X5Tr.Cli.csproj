@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>x5tr</AssemblyName>
+    <RootNamespace>X5Tr.Cli</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\X5Translator\Services\LocRes.cs" Link="Services\LocRes.cs" />
+    <Compile Include="..\X5Translator\Services\Project.cs" Link="Services\Project.cs" />
+    <Compile Include="..\X5Translator\Services\Release.cs" Link="Services\Release.cs" />
+    <Compile Include="..\X5Translator\Services\Names.cs" Link="Services\Names.cs" />
+  </ItemGroup>
+</Project>

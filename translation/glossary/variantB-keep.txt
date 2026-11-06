@@ -14,3 +14,6 @@
 ^TXT_TRADINGPOST_\d+_NAME$
 ^TXT_QUESTJOBBOARD_\d+_NAME$
 ^TXT_FLIGHTTOOL_\d+_NAME$
+# названия квестов и глав сюжета (вариант B: английские; описания и цели — русские)
+^TXT_QUEST_\d+_(NONE|ADAMANT|FIGHT|WILD|MAGIC)_NAME$
+^TXT_QUESTCHAPTER_\d+_CHAPTERNAME$

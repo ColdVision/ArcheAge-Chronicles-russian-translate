@@ -124,5 +124,52 @@ Check '«Enable Full Russian.cmd»: обратно на A' ((RunCmd 'Enable Full
 Check '«Enable English names.cmd» снова: B, Culture=ru' ((RunCmd 'Enable English names.cmd') -eq 0 -and (Sha $target2) -eq $shaB -and (Get-Content $ini2 -Raw) -match 'Culture=ru')
 Check '«Remove-Russian.cmd»: файл ru и состояние удалены, Culture=en' ((RunCmd 'Remove-Russian.cmd') -eq 0 -and -not (Test-Path $target2) -and -not (Test-Path $stp2) -and (Get-Content $ini2 -Raw) -match 'Culture=en')
 
+"--- GameUserSettings.ini отсутствует / пустой / только BOM (Windows PowerShell $($PSVersionTable.PSVersion), через .cmd)"
+foreach ($case in 'нет файла', 'пустой (0 байт)', 'только BOM') {
+    foreach ($n in 'Enable Full Russian.cmd', 'Enable English names.cmd', 'Update-Russian.cmd', 'Disable-Russian', 'Remove-Russian.cmd') {
+        if ($n -eq 'Disable-Russian') { continue }   # отдельного файла нет — Disable проверяется ниже напрямую
+        Remove-Item $ini2 -Force -ErrorAction SilentlyContinue
+        if ($case -eq 'пустой (0 байт)') { [IO.File]::WriteAllBytes($ini2, [byte[]]@()) }
+        if ($case -eq 'только BOM') { [IO.File]::WriteAllBytes($ini2, [byte[]](0xEF, 0xBB, 0xBF)) }
+        $want = if ($n -like 'Remove*') { 'Culture=en' } else { 'Culture=ru' }
+        $rc = RunCmd $n
+        $txt = if (Test-Path $ini2) { Get-Content $ini2 -Raw } else { '' }
+        Check "ini $case → «$n»: код 0, $want в [Internationalization]" ($rc -eq 0 -and $txt -match '\[Internationalization\]' -and $txt -match [regex]::Escape($want))
+    }
+    Remove-Item $ini2 -Force -ErrorAction SilentlyContinue
+    if ($case -eq 'пустой (0 байт)') { [IO.File]::WriteAllBytes($ini2, [byte[]]@()) }
+    if ($case -eq 'только BOM') { [IO.File]::WriteAllBytes($ini2, [byte[]](0xEF, 0xBB, 0xBF)) }
+    function RunDisable2 { & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $pkg2 'tools\ru-tool.ps1') -Action Disable -GameRoot $game2 -SettingsPath $ini2 -Offline -SkipGameCheck *> "$t\dis2.log"; $LASTEXITCODE }
+    Check "ini $case → Disable: код 0, Culture=en" ((RunDisable2) -eq 0 -and (Get-Content $ini2 -Raw) -match 'Culture=en')
+}
+"--- повреждённое состояние установки"
+'{"version":"0.0.1"}' | Set-Content $stp2 -Encoding ASCII
+Check 'состояние без поля files: Enable Full Russian ставит перевод' ((RunCmd 'Enable Full Russian.cmd') -eq 0 -and (Sha $target2) -eq $shaA)
+'{"version":"0.0.1","variant":"B","files":{}}' | Set-Content $stp2 -Encoding ASCII
+Check 'состояние с пустым files: Update работает' ((RunCmd 'Update-Russian.cmd') -eq 0 -and (Test-Path $target2))
+'' | Set-Content $stp2 -Encoding ASCII
+Check 'пустой файл состояния: Remove не падает' ((RunCmd 'Remove-Russian.cmd') -eq 0)
+
+"--- поиск игры через Steam: библиотека на несуществующем диске"
+$used = @(Get-PSDrive -PSProvider FileSystem | ForEach-Object { $_.Name.ToUpper() })
+$ghost = ([char[]]'QRSTUVWXYZJKLMNOP' | Where-Object { $used -notcontains [string]$_ } | Select-Object -First 1)
+$steam = Join-Path $t 'Steam'; $lib = Join-Path $t 'Steam Lib 2'
+New-Item -ItemType Directory "$steam\steamapps", "$lib\steamapps\common\ArcheAge Chronicles\X5" -Force | Out-Null
+Set-Content "$lib\steamapps\common\ArcheAge Chronicles\ArcheAgeChronicles.exe" 'x'
+"`"AppState`"`n{`n`t`"appid`"`t`t`"3218230`"`n`t`"installdir`"`t`t`"ArcheAge Chronicles`"`n`t`"buildid`"`t`t`"26404487`"`n}" | Set-Content "$lib\steamapps\appmanifest_3218230.acf" -Encoding ASCII
+function Vdf($paths) { "`"libraryfolders`"`n{`n" + (($paths | ForEach-Object -Begin { $i = 0 } -Process { "`t`"$i`"`n`t{`n`t`t`"path`"`t`t`"$($_.Replace('\','\\'))`"`n`t}`n"; $i++ }) -join '') + "}" }
+function RunSteam { & powershell -NoProfile -ExecutionPolicy Bypass -File $tool -Action Install -SteamRoot $steam -SettingsPath $ini -Offline -NoPrompt -SkipGameCheck *> "$t\steam.log"; $LASTEXITCODE }
+$libTarget = "$lib\steamapps\common\ArcheAge Chronicles\X5\Content\Localization\String\ru\String.locres"
+Vdf @("${ghost}:\SteamLibrary", $lib) | Set-Content "$steam\steamapps\libraryfolders.vdf" -Encoding ASCII
+Check "vdf с библиотекой на диске ${ghost}: (его нет) + реальной: игра найдена, перевод установлен" ((RunSteam) -eq 0 -and (Test-Path $libTarget) -and (Sha $libTarget) -eq $shaA)
+Remove-Item $libTarget -Force
+Vdf @("${ghost}:\SteamLibrary") | Set-Content "$steam\steamapps\libraryfolders.vdf" -Encoding ASCII
+Remove-Item "$steam\steamapps\appmanifest_*.acf" -ErrorAction SilentlyContinue
+$rc = RunSteam
+Check "vdf только с несуществующим диском: понятная ошибка «не нашёл папку игры», без падения на диске" ($rc -eq 1 -and -not (Test-Path $libTarget) -and (Get-Content "$t\steam.log" -Raw) -match '-GameRoot')
+Set-Content "$steam\steamapps\libraryfolders.vdf" '' ; Remove-Item $steam -Recurse -Force
+function RunGhostSteam { & powershell -NoProfile -ExecutionPolicy Bypass -File $tool -Action Status -SteamRoot "${ghost}:\Steam" -SettingsPath $ini -Offline -NoPrompt *> "$t\steam2.log"; $LASTEXITCODE }
+Check 'папка Steam из реестра на несуществующем диске: понятная ошибка' ((RunGhostSteam) -eq 1 -and (Get-Content "$t\steam2.log" -Raw) -match '-GameRoot')
+
 ''
 if ($fail) { "ПРОВАЛЕНО проверок: $fail (логи: $t)"; exit 1 } else { 'Все проверки пройдены.' }

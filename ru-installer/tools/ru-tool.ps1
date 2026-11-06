@@ -6,7 +6,8 @@
     [ValidateSet('','A','B')][string]$Variant = '',   # A — всё на русском, B — названия и имена на английском
     [switch]$Offline,
     [switch]$NoPrompt,
-    [switch]$SkipGameCheck          # только для автоматических проверок в песочнице
+    [switch]$SkipGameCheck,         # только для автоматических проверок в песочнице
+    [string]$SteamRoot = ''         # только для проверок: папка Steam вместо значения из реестра
 )
 $ErrorActionPreference = 'Stop'
 trap { Write-Host ("Ошибка: " + $_.Exception.Message) -ForegroundColor Red; exit 1 }
@@ -26,42 +27,53 @@ function Assert-GameClosed {
 }
 
 function Test-Game([string]$d) {
-    $d -and (Test-Path -LiteralPath $d -PathType Container) -and
-    ((Test-Path -LiteralPath (Join-Path $d 'ArcheAgeChronicles.exe')) -or (Test-Path -LiteralPath (Join-Path $d 'X5') -PathType Container))
+    # путь может указывать на несуществующий диск — тогда это просто «не игра», без исключения
+    try {
+        if (-not $d -or -not (Test-Path -LiteralPath $d -PathType Container)) { return $false }
+        return (Test-Path -LiteralPath ([IO.Path]::Combine($d, 'ArcheAgeChronicles.exe'))) -or (Test-Path -LiteralPath ([IO.Path]::Combine($d, 'X5')) -PathType Container)
+    } catch { return $false }
 }
 
 function Find-SteamGame {
     $steam = $null
-    try { $steam = (Get-ItemProperty 'HKCU:\Software\Valve\Steam' -ErrorAction Stop).SteamPath } catch {}
+    if ($SteamRoot) { $steam = $SteamRoot }
+    else { try { $steam = (Get-ItemProperty 'HKCU:\Software\Valve\Steam' -ErrorAction Stop).SteamPath } catch {} }
     if (-not $steam) { return $null }
     $libs = [Collections.Generic.List[string]]::new(); $libs.Add($steam)
-    $vdf = Join-Path $steam 'steamapps\libraryfolders.vdf'
-    if (Test-Path $vdf) {
+    $vdf = $null; try { $vdf = [IO.Path]::Combine($steam, 'steamapps', 'libraryfolders.vdf') } catch {}
+    if ($vdf -and (Test-Path -LiteralPath $vdf)) {
         foreach ($m in [regex]::Matches([IO.File]::ReadAllText($vdf), '"path"\s+"([^"]+)"')) { $libs.Add($m.Groups[1].Value.Replace('\\','\')) }
     }
     foreach ($lib in ($libs | Select-Object -Unique)) {
-        foreach ($id in $Config.steam_app_ids) {
-            $acf = Join-Path $lib "steamapps\appmanifest_$id.acf"
-            if (-not (Test-Path $acf)) { continue }
-            $m = [regex]::Match([IO.File]::ReadAllText($acf), '"installdir"\s+"([^"]+)"')
-            if (-not $m.Success) { continue }
-            $dir = Join-Path $lib "steamapps\common\$($m.Groups[1].Value)"
-            if (Test-Game $dir) { return $dir }
-        }
+        # библиотека Steam может лежать на диске, которого уже нет (отключён/удалён): пропускаем, а не падаем
+        try {
+            if (-not (Test-Path -LiteralPath $lib -PathType Container)) { continue }
+            foreach ($id in $Config.steam_app_ids) {
+                $acf = [IO.Path]::Combine($lib, 'steamapps', "appmanifest_$id.acf")
+                if (-not (Test-Path -LiteralPath $acf)) { continue }
+                $m = [regex]::Match([IO.File]::ReadAllText($acf), '"installdir"\s+"([^"]+)"')
+                if (-not $m.Success) { continue }
+                $dir = [IO.Path]::Combine($lib, 'steamapps', 'common', $m.Groups[1].Value)
+                if (Test-Game $dir) { return $dir }
+            }
+        } catch { continue }
     }
     return $null
 }
 
 function Get-InstalledBuild([string]$game) {
-    # steamapps\common\<папка> -> steamapps\appmanifest_<id>.acf
-    $steamapps = Split-Path (Split-Path $game -Parent) -Parent
-    foreach ($id in $Config.steam_app_ids) {
-        $acf = Join-Path $steamapps "appmanifest_$id.acf"
-        if (Test-Path $acf) {
-            $m = [regex]::Match([IO.File]::ReadAllText($acf), '"buildid"\s+"(\d+)"')
-            if ($m.Success) { return [long]$m.Groups[1].Value }
+    # steamapps\common\<папка> -> steamapps\appmanifest_<id>.acf; если что-то не так с путём — сборка просто неизвестна
+    try {
+        $steamapps = Split-Path (Split-Path $game -Parent) -Parent
+        if (-not $steamapps -or -not (Test-Path -LiteralPath $steamapps -PathType Container)) { return 0 }
+        foreach ($id in $Config.steam_app_ids) {
+            $acf = [IO.Path]::Combine($steamapps, "appmanifest_$id.acf")
+            if (Test-Path -LiteralPath $acf) {
+                $m = [regex]::Match([IO.File]::ReadAllText($acf), '"buildid"\s+"(\d+)"')
+                if ($m.Success) { return [long]$m.Groups[1].Value }
+            }
         }
-    }
+    } catch {}
     return 0
 }
 
@@ -71,6 +83,12 @@ function Compare-Ver([string]$a, [string]$b) {
     $x = 0; $y = 0
     if ([int]::TryParse($a, [ref]$x) -and [int]::TryParse($b, [ref]$y)) { return $x.CompareTo($y) }
     return [string]::Compare($a, $b, $true)
+}
+
+# список файлов прошлой установки; в PowerShell 5.1 пустой результат легко становится $null — вызывающие оборачивают в @()
+function Get-StateFiles($st) {
+    if ($null -eq $st -or $null -eq $st.files) { return }
+    foreach ($p in $st.files.PSObject.Properties) { $p.Name }
 }
 
 function Read-State([string]$game) {
@@ -97,7 +115,10 @@ function Set-Culture([string]$Culture) {
     $path = Get-IniPath
     $dir = Split-Path $path -Parent
     if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
-    $raw = if (Test-Path -LiteralPath $path) { [IO.File]::ReadAllBytes($path) } else { [byte[]]@() }
+    # важно: не через "$raw = if …": PowerShell 5.1 превращает пустой массив в $null (файла нет или он пуст)
+    [byte[]]$raw = New-Object byte[] 0
+    if (Test-Path -LiteralPath $path) { $raw = [IO.File]::ReadAllBytes($path) }
+    if ($null -eq $raw) { $raw = New-Object byte[] 0 }
     $bom = 0; $enc = New-Object Text.UTF8Encoding($false)
     if ($raw.Length -ge 3 -and $raw[0] -eq 0xEF -and $raw[1] -eq 0xBB -and $raw[2] -eq 0xBF) { $bom = 3 }
     elseif ($raw.Length -ge 2 -and $raw[0] -eq 0xFF -and $raw[1] -eq 0xFE) { $enc = New-Object Text.UnicodeEncoding($false, $false); $bom = 2 }
@@ -176,7 +197,7 @@ function Get-RemoteManifest([string]$url) {
 
 # ================= основная логика =================
 $game = $null
-foreach ($c in @($GameRoot, (Split-Path $PackageRoot -Parent), $PackageRoot)) { if ($c -and (Test-Game $c)) { $game = (Resolve-Path $c).Path; break } }
+foreach ($c in @($GameRoot, (Split-Path $PackageRoot -Parent), $PackageRoot)) { if ($c -and (Test-Game $c)) { $game = (Resolve-Path -LiteralPath $c).Path; break } }
 if (-not $game) { $game = Find-SteamGame }
 if (-not $game) { throw 'Не нашёл папку игры. Положите русификатор в папку игры (рядом с ArcheAgeChronicles.exe) или запустите с параметром -GameRoot "путь".' }
 
@@ -199,13 +220,13 @@ switch ($Action) {
         Assert-GameClosed
         $st = Read-State $game
         if ($st) {
-            foreach ($f in $st.files.PSObject.Properties.Name) {
+            foreach ($f in @(Get-StateFiles $st)) {
                 $t = Join-Path $game ($f.Replace('/', '\'))
                 $bk = "$t.ru-backup"
                 if (Test-Path -LiteralPath $bk) { Move-Item -LiteralPath $bk -Destination $t -Force }
                 elseif (Test-Path -LiteralPath $t) { Remove-Item -LiteralPath $t -Force }
             }
-            Remove-Item -LiteralPath (Join-Path $game $StateRel) -Force
+            Remove-Item -LiteralPath (Join-Path $game $StateRel) -Force -ErrorAction SilentlyContinue
         }
         Set-Culture 'en'
         Say 'Перевод удалён из игры, выбран английский язык.'
@@ -234,6 +255,7 @@ if ($local -and $remote) {
 } elseif ($remote) { $manifest = $remote; $source = 'remote' }
 elseif ($local) { $manifest = $local; $source = 'local' }
 if (-not $manifest) { throw 'Нет данных перевода: рядом нет release-manifest.json, а сервер недоступен.' }
+if (@($manifest.files).Count -eq 0) { throw 'В манифесте перевода нет файлов.' }
 
 $stV = if ($st -and $st.variant) { [string]$st.variant } elseif ($st) { 'A' } else { '' }
 if ($Action -eq 'Update' -and $st -and $stV -eq $V -and (Compare-Ver "$($manifest.version)" "$($st.version)") -le 0) {
@@ -246,7 +268,7 @@ $baseUrl = if ($source -eq 'remote') { $url.Substring(0, $url.LastIndexOf('/') +
 $newFiles = [ordered]@{}
 $staged = @()
 try {
-    foreach ($f in $manifest.files) {
+    foreach ($f in @($manifest.files)) {
         if ($f.sha256 -isnot [string] -or $f.sha256 -notmatch '^[0-9a-fA-F]{64}$') { throw 'В манифесте нет корректной контрольной суммы.' }
         $rel = ([string]$f.path).Replace('/', '\')
         if ($rel -match '(^|\\)\.\.(\\|$)' -or [IO.Path]::IsPathRooted($rel)) { throw "Недопустимый путь в манифесте: $($f.path)" }
@@ -270,7 +292,7 @@ try {
     }
 
     # всё проверено — только теперь трогаем игру
-    $ours = @(); if ($st) { $ours = @($st.files.PSObject.Properties.Name) }
+    $ours = @(Get-StateFiles $st)
     foreach ($s in $staged) {
         $dir = Split-Path $s.Target -Parent
         if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
@@ -287,7 +309,7 @@ try {
 Set-Culture 'ru'
 # файлы прежней установки, которых нет в новой, убираем (смена версии не оставляет мусора)
 if ($st) {
-    foreach ($f in $st.files.PSObject.Properties.Name) {
+    foreach ($f in @(Get-StateFiles $st)) {
         if ($newFiles.Contains($f)) { continue }
         $t = Join-Path $game ($f.Replace('/', '\')); $bk = "$t.ru-backup"
         if (Test-Path -LiteralPath $bk) { Move-Item -LiteralPath $bk -Destination $t -Force } elseif (Test-Path -LiteralPath $t) { Remove-Item -LiteralPath $t -Force }

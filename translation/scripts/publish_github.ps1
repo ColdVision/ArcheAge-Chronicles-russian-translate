@@ -4,13 +4,15 @@
 #   powershell -ExecutionPolicy Bypass -File scripts\publish_github.ps1 -Version 0.1.0
 #   powershell -ExecutionPolicy Bypass -File scripts\publish_github.ps1 -Version 0.1.0 -Publish
 param(
-    [string]$Version = '0.1.0',
+    [string]$Version = '',          # пусто = самая новая папка в releases\
     [string]$Repo = 'ColdVision/ArcheAge-Chronicles-russian-translate',
     [switch]$Publish,
+    [switch]$Yes,                # пользователь уже подтвердил публикацию в чате: не спрашивать ДА
     [switch]$SkipRepoPush        # только релиз, без пуша содержимого репозитория
 )
 $ErrorActionPreference = 'Stop'
 $tr = Split-Path $PSScriptRoot -Parent          # ru-translation
+if (-not $Version) { $Version = (Get-ChildItem (Join-Path $tr 'releases') -Directory | Where-Object { $_.Name -match '^\d+(\.\d+)*$' -and (Test-Path (Join-Path $_.FullName 'github')) } | Sort-Object { [version]$_.Name } | Select-Object -Last 1).Name }
 $at = Split-Path $tr -Parent                     # aa-tools
 $assetsDir = Join-Path $tr "releases\$Version\github"
 $stage = Join-Path $env:TEMP "aa-ru-repo-$Version"
@@ -117,8 +119,7 @@ if (-not $git) { throw 'git не установлен.' }
 & $gh auth status *> $null; if ($LASTEXITCODE) { throw 'gh не авторизован: выполните gh auth login.' }
 ''
 "Будет выполнено: $(if (-not $SkipRepoPush) { "пуш содержимого репозитория в $Repo (ветка main), " })создание релиза v$Version и загрузка $($assets.Count) файлов."
-$ans = Read-Host 'Чтобы продолжить, введите ДА'
-if ($ans -ne 'ДА') { 'Отменено.'; exit 0 }
+if (-not $Yes) { $ans = Read-Host 'Чтобы продолжить, введите ДА'; if ($ans -ne 'ДА') { 'Отменено.'; exit 0 } }
 
 $exists = $true; & $gh repo view $Repo *> $null; if ($LASTEXITCODE) { $exists = $false }
 if (-not $exists) {

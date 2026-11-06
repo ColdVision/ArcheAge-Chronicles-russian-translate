@@ -1,11 +1,11 @@
-# Ручной тест в игре — перевод 0.1.0
+# Ручной тест в игре — перевод 0.1.1
 
-**Архив:** `D:\Claude\aa-tools\ru-translation\releases\0.1.0\ArcheAge-Chronicles-RU-0.1.0.zip`
+**Архив:** `D:\Claude\aa-tools\ru-translation\releases\0.1.1\ArcheAge-Chronicles-RU-0.1.1.zip`
 
 ## Установка
 1. Закройте игру и лаунчер.
 2. Распакуйте архив в папку игры (Steam → ПКМ по игре → Управление → Показать локальные файлы) — рядом с `ArcheAgeChronicles.exe` появятся `Enable Full Russian.cmd`, `Enable English names.cmd`, `Update-Russian.cmd`, `Remove-Russian.cmd`, `README.md` и папки `tools`, `variants`.
-3. Запустите `Enable Full Russian.cmd` (версия A). Ожидается «Готово! Перевод версии 0.1.0 установлен…» и строка о покрытии 49 374 из 54 711.
+3. Запустите `Enable Full Russian.cmd` (версия A). Ожидается «Готово! Перевод версии 0.1.1 установлен…» и строка о покрытии 49 374 из 54 711.
 4. Проверьте, что появился файл `X5\Content\Localization\String\ru\String.locres` (≈6,8 МБ), а в `%LOCALAPPDATA%\X5\Saved\Config\Windows\GameUserSettings.ini` в секции `[Internationalization]` стоит `Culture=ru`.
 
 ## Что посмотреть в игре
@@ -22,7 +22,7 @@
 
 ## Версия B
 - [ ] Закройте игру, запустите `Enable English names.cmd` («Вариант перевода: B…»).
-- [ ] В игре: тексты и интерфейс русские, а названия предметов, локаций, умений и статусов, имена NPC и фракций — английские (в т. ч. внутри фраз: «…в Seaglass Harbor…», «Gartez…»).
+- [ ] В игре: тексты и интерфейс русские, а названия предметов, локаций, умений и статусов, имена NPC и фракций, названия квестов и глав в журнале — английские, а описания и цели квестов — русские (в т. ч. внутри фраз: «…в Seaglass Harbor…», «Gartez…»).
 - [ ] `Update-Russian.cmd` сохраняет версию B; `Enable Full Russian.cmd` возвращает A без лишних файлов.
 
 ## Обновление и удаление

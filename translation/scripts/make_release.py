@@ -11,7 +11,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 AT = os.path.dirname(ROOT)
 X5 = os.path.join(AT, 'X5Tr.Cli', 'bin', 'Release', 'net10.0', 'x5tr.exe')
 INST = os.path.join(AT, 'ru-installer')
-ver = sys.argv[1]; build = sys.argv[2] if len(sys.argv) > 2 else '26404487'; app = sys.argv[3] if len(sys.argv) > 3 else '3218230'
+ver = sys.argv[1]; build = sys.argv[2] if len(sys.argv) > 2 else '26495283'; app = sys.argv[3] if len(sys.argv) > 3 else '3218230'
 out = os.path.join(ROOT, 'releases', ver)
 if os.path.exists(out): shutil.rmtree(out)
 os.makedirs(out)

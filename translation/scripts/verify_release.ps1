@@ -1,11 +1,11 @@
 ﻿# Проверки локального релиза без игры (обе версии A и B). Запуск: powershell -ExecutionPolicy Bypass -File scripts\verify_release.ps1 -Version 0.1.0
-param([string]$Version = '0.1.0')
+param([string]$Version = '0.1.2', [long]$Build = 26495283, [string]$GameData = 'game-data-26495283')
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $at = Split-Path $root -Parent
 $x = Join-Path $at 'X5Tr.Cli\bin\Release\net10.0\x5tr.exe'
 $rel = Join-Path $root "releases\$Version"
-$en = Join-Path $at 'game-data\X5\Content\Localization\String\en\String.locres'
+$en = Join-Path $at "$GameData\X5\Content\Localization\String\en\String.locres"
 $fail = 0
 function Check($name, $ok) { if ($ok) { "OK   $name" } else { "FAIL $name"; $script:fail++ } }
 $t = Join-Path $env:TEMP "ru-verify-$Version"; Remove-Item $t -Recurse -Force -ErrorAction SilentlyContinue; New-Item -ItemType Directory $t | Out-Null
@@ -31,7 +31,7 @@ foreach ($v in 'A', 'B') {
     $cyr = @($RU | Where-Object { $_.text -match '[Ѐ-ӿ]' }).Count
     Check "$v`: строк с кириллицей: $cyr" ($cyr -gt 35000)
     $m = Get-Content (Join-Path $rel "github\manifest-$v.json") -Raw -Encoding UTF8 | ConvertFrom-Json
-    Check "$v`: manifest — buildid 26404487, AppID 3218230, вариант $v" ($m.game_build -eq 26404487 -and $m.steam_app_id -eq 3218230 -and $m.variant -eq $v)
+    Check "$v`: manifest — buildid $Build, AppID 3218230, вариант $v" ($m.game_build -eq $Build -and $m.steam_app_id -eq 3218230 -and $m.variant -eq $v)
     Check "$v`: manifest sha256 = String-$v.locres" ($m.files[0].sha256 -eq (Get-FileHash $file -Algorithm SHA256).Hash.ToLower())
 }
 

@@ -40,7 +40,7 @@ def short(n):  # «Vesper the Ruthless» -> «Vesper», «Baron Engreven» -> «
     return re.split(r'\s+(?:the|of)\s+|,', n)[0].strip()
 
 # реальные реплики по игровым таблицам (говорящий = ID NPC)
-CMS = os.path.join(os.path.dirname(ROOT), 'game-data', 'X5', 'Content', 'Design', 'CMS')
+CMS = os.path.join(os.path.dirname(ROOT), 'game-data-26495283', 'X5', 'Content', 'Design', 'CMS')
 lines_by_id = collections.Counter(); scenes_by_id = collections.defaultdict(set)
 for fn in ('Dialogue.csv', 'Caption.csv'):
     for r in csv.DictReader(open(os.path.join(CMS, fn), encoding='utf-8-sig')):

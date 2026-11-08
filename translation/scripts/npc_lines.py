@@ -5,7 +5,7 @@ ID NPC по умолчанию — все TXT_NPC_<id>_NAME с этим англ
 import argparse, csv, json, os, re, subprocess, sys, collections
 sys.stdout.reconfigure(encoding='utf-8')
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CMS = os.path.join(os.path.dirname(ROOT), 'game-data', 'X5', 'Content', 'Design', 'CMS')
+CMS = os.path.join(os.path.dirname(ROOT), 'game-data-26495283', 'X5', 'Content', 'Design', 'CMS')
 ap = argparse.ArgumentParser(); ap.add_argument('name'); ap.add_argument('--ru', default=''); ap.add_argument('--ids', default='')
 a = ap.parse_args()
 

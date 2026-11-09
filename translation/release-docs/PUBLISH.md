@@ -5,15 +5,15 @@
 ## 1. Собрать релиз и проверить (локально, без игры)
 ```
 cd D:\Claude\aa-tools\ru-translation
-python scripts\make_release.py 0.1.3
-powershell -ExecutionPolicy Bypass -File scripts\verify_release.ps1 -Version 0.1.3
+python scripts\make_release.py 0.1.4
+powershell -ExecutionPolicy Bypass -File scripts\verify_release.ps1 -Version 0.1.4
 ```
 
 ## 2. Посмотреть, что будет залито (dry-run, ничего не отправляет)
 ```
-powershell -ExecutionPolicy Bypass -File scripts\publish_github.ps1 -Version 0.1.3
+powershell -ExecutionPolicy Bypass -File scripts\publish_github.ps1 -Version 0.1.4
 ```
-Скрипт собирает содержимое репозитория во временную папку `%TEMP%\aa-ru-repo-0.1.3` по белому списку:
+Скрипт собирает содержимое репозитория во временную папку `%TEMP%\aa-ru-repo-0.1.4` по белому списку:
 - `README.md`;
 - `ru-installer/`;
 - `translation/glossary`, `translation/scripts`, `translation/release-docs` и md-файлы;
@@ -32,14 +32,14 @@ powershell -ExecutionPolicy Bypass -File scripts\publish_github.ps1 -Version 0.1
 
 ## 4. Реальная отправка
 ```
-powershell -ExecutionPolicy Bypass -File scripts\publish_github.ps1 -Version 0.1.3 -Publish
+powershell -ExecutionPolicy Bypass -File scripts\publish_github.ps1 -Version 0.1.4 -Publish
 ```
 Скрипт повторит все проверки и попросит ввести «ДА». Если репозитория нет, он спросит, создавать ли его. Затем:
 1. Пушит содержимое в ветку `main`. Шаг можно пропустить флагом `-SkipRepoPush`, если репозиторий уже заполнен.
-2. Создаёт релиз `v0.1.3`, помеченный Latest, с описанием `release-docs/RELEASE-NOTES.md`.
-3. Загружает файлы релиза: `ArcheAge-Chronicles-RU-0.1.3.zip`, `String-A.locres`, `String-B.locres`, `manifest-A.json`, `manifest-B.json`, `manifest.json`, `SHA256SUMS.txt`.
+2. Создаёт релиз `v0.1.4`, помеченный Latest, с описанием `release-docs/RELEASE-NOTES.md`.
+3. Загружает файлы релиза: `ArcheAge-Chronicles-RU-0.1.4.zip`, `String-A.locres`, `String-B.locres`, `manifest-A.json`, `manifest-B.json`, `manifest.json`, `SHA256SUMS.txt`.
 
 Установщик проверяет обновления по `releases/latest/download/manifest-A.json` или `manifest-B.json`, поэтому все файлы должны быть в одном релизе с пометкой Latest.
 
 ## 5. Проверка после публикации
-`gh release view v0.1.3 --repo ColdVision/ArcheAge-Chronicles-russian-translate`. Затем `Update-Russian.cmd` на тестовой машине должен написать «Последняя версия перевода на сервере: 0.1.3».
+`gh release view v0.1.4 --repo ColdVision/ArcheAge-Chronicles-russian-translate`. Затем `Update-Russian.cmd` на тестовой машине должен написать «Последняя версия перевода на сервере: 0.1.4».

@@ -8,7 +8,8 @@ CMS = os.path.join(os.path.dirname(ROOT), 'game-data-26495283', 'X5', 'Content',
 ru = {k: t for ns, k, t in json.load(open(os.path.join(ROOT, 'project', 'aa.x5tr'), encoding='utf-8'))['Tr']}
 en = {r[1]: r[3] for r in csv.reader(open(os.path.join(ROOT, 'work', 'en-26495283.csv'), encoding='utf-8-sig')) if len(r) > 3}
 model = {r['id']: r['fk_ClothesModelName'] for r in csv.DictReader(open(os.path.join(CMS, 'UnitModel.csv'), encoding='utf-8-sig'))}
-npc = {r['id']: (r['name'], model.get(r['FK_modelId'], '')) for r in csv.DictReader(open(os.path.join(CMS, 'Npc.csv'), encoding='utf-8-sig'))}
+OVR = {'Nisol': 'F', 'Krokk': 'M'}  # пол по сюжету (в EN), модель в данных другая
+npc = {r['id']: (r['name'], {'F': 'Unique_F', 'M': 'Unique_M'}.get(OVR.get(r['name'], ''), model.get(r['FK_modelId'], ''))) for r in csv.DictReader(open(os.path.join(CMS, 'Npc.csv'), encoding='utf-8-sig'))}
 def gender(m): return 'F' if re.search(r'_F\b|Female', m) else 'M' if re.search(r'_M\b|Male', m) else ''
 
 speaker = {}

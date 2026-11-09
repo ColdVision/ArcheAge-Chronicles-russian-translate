@@ -7,7 +7,7 @@ from collections import Counter
 sys.stdout.reconfigure(encoding='utf-8')
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NPC = os.path.join(ROOT, 'npc')
-OUT = os.path.join(ROOT, 'work', 'dfix')
+OUT = os.path.join(ROOT, os.environ.get('DFIX_DIR', os.path.join('work', 'dfix')))
 PRJ = os.path.join(ROOT, 'project', 'aa.x5tr')
 X5 = os.path.join(ROOT, '..', 'X5Tr.Cli', 'bin', 'Release', 'net10.0', 'x5tr.exe')
 EN_CSV = os.path.join(ROOT, 'work', 'en-26495283.csv')

@@ -1,5 +1,5 @@
 ﻿# Проверки локального релиза без игры (обе версии A и B). Запуск: powershell -ExecutionPolicy Bypass -File scripts\verify_release.ps1 -Version 0.1.0
-param([string]$Version = '0.1.3', [long]$Build = 26495283, [string]$GameData = 'game-data-26495283')
+param([string]$Version = '0.1.4', [long]$Build = 26495283, [string]$GameData = 'game-data-26495283')
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $at = Split-Path $root -Parent

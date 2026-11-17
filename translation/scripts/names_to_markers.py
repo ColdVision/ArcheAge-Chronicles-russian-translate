@@ -16,7 +16,7 @@ for ln in open(os.path.join(ROOT, 'glossary', 'names.tsv'), encoding='utf-8-sig'
             forms.setdefault(f, (p[0], c))
 RX = re.compile(r'(?<![А-Яа-яЁё{|])(' + '|'.join(sorted(map(re.escape, forms), key=len, reverse=True)) + r')(?![А-Яа-яЁё])')
 en = {}
-with open(os.path.join(ROOT, 'work', 'en-26495283.csv'), encoding='utf-8-sig', newline='') as f:
+with open(os.path.join(ROOT, 'work', 'en-26609794.csv'), encoding='utf-8-sig', newline='') as f:
     for r in csv.DictReader(f): en[r['key']] = r['text']
 out = []
 for ns, k, t in json.load(open(PRJ, encoding='utf-8'))['Tr']:

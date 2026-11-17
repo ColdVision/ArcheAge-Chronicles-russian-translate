@@ -10,7 +10,7 @@ NPC = os.path.join(ROOT, 'npc')
 OUT = os.path.join(ROOT, os.environ.get('DFIX_DIR', os.path.join('work', 'dfix')))
 PRJ = os.path.join(ROOT, 'project', 'aa.x5tr')
 X5 = os.path.join(ROOT, '..', 'X5Tr.Cli', 'bin', 'Release', 'net10.0', 'x5tr.exe')
-EN_CSV = os.path.join(ROOT, 'work', 'en-26495283.csv')
+EN_CSV = os.path.join(ROOT, 'work', 'en-26609794.csv')
 
 def load():
     en = {}
@@ -89,7 +89,7 @@ def apply(num):
             if not ln.strip() or '\t' not in ln: continue
             k, t = ln.split('\t', 1)
             k = k.strip().removeprefix('AUTO ').strip()
-            if not k.startswith('TXT_'): k = 'TXT_' + k
+            if k not in en and not k.startswith('TXT_'): k = 'TXT_' + k
             if k not in en and k + '_TEXT' in en: k += '_TEXT'
             t = t.strip().replace('\\n', '\n')
             if k not in en: bad.append((p, k, 'нет ключа')); continue

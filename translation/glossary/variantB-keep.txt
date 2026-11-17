@@ -1,6 +1,6 @@
 # Регулярные выражения по ключам: в варианте B эти строки остаются английскими (названия предметов, локаций, умений).
 ^TXT_ITEM_\d+_NAME$
-^TXT_ZONE_
+^TXT_ZONE_(?!ZONE_03_EXPLORATION_CH5_NAME$)
 ^TXT_PERKNODE_\d+_NAME$
 ^TXT_STATUSEFFECT_\d+_NAME$
 ^TXT_COOKRECIPE_\d+_NAME$

@@ -1,5 +1,5 @@
 ﻿# Проверки локального релиза без игры (обе версии A и B). Запуск: powershell -ExecutionPolicy Bypass -File scripts\verify_release.ps1 -Version 0.1.0
-param([string]$Version = '0.1.4', [long]$Build = 26495283, [string]$GameData = 'game-data-26495283')
+param([string]$Version = '0.1.5', [long]$Build = 26609794, [string]$GameData = 'game-data-26609794')
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $at = Split-Path $root -Parent
@@ -37,7 +37,9 @@ foreach ($v in 'A', 'B') {
 
 "--- только B"
 # строки из списка variantB-keep (названия предметов, зон, умений, статусов, рецептов, имена NPC, групп и т. д.) — английские как в оригинале
-$keep = @(Get-Content (Join-Path $root 'glossary\variantB-keep.txt') -Encoding UTF8 | Where-Object { $_ -and -not $_.StartsWith('#') })
+$keepFile = Join-Path $root "releases\$Version\variantB-keep.generated.txt"
+if (-not (Test-Path $keepFile)) { $keepFile = Join-Path $root 'glossary\variantB-keep.txt' }
+$keep = @(Get-Content $keepFile -Encoding UTF8 | Where-Object { $_ -and -not $_.StartsWith('#') })
 $keepRx = [regex]('(' + ($keep -join ')|(') + ')')
 $kb = 0; $kn = 0
 foreach ($row in $data['B']) { if ($keepRx.IsMatch($row.key)) { $kn++; if ($row.text -ne $enText["$($row.ns)/$($row.key)"]) { $kb++ } } }

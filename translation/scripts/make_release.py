@@ -11,7 +11,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 AT = os.path.dirname(ROOT)
 X5 = os.path.join(AT, 'X5Tr.Cli', 'bin', 'Release', 'net10.0', 'x5tr.exe')
 INST = os.path.join(AT, 'ru-installer')
-ver = sys.argv[1]; build = sys.argv[2] if len(sys.argv) > 2 else '26495283'; app = sys.argv[3] if len(sys.argv) > 3 else '3218230'
+ver = sys.argv[1]; build = sys.argv[2] if len(sys.argv) > 2 else '26609794'; app = sys.argv[3] if len(sys.argv) > 3 else '3218230'
 out = os.path.join(ROOT, 'releases', ver)
 if os.path.exists(out): shutil.rmtree(out)
 os.makedirs(out)
@@ -19,9 +19,22 @@ sha = lambda p: hashlib.sha256(open(p, 'rb').read()).hexdigest()
 REL = 'X5/Content/Localization/String/ru/String.locres'
 gh = os.path.join(out, 'github'); os.makedirs(gh)
 mans = {}
+# Вариант B оставляет английские названия по variantB-keep.txt. Если «английский» оригинал на самом деле корейский,
+# а у нас есть перевод, — исключаем такие ключи из списка, чтобы в B был русский текст, а не корейский.
+import csv, re
+HANGUL = re.compile('[가-힣]')
+enmap = {r['key']: r['text'] for r in csv.DictReader(open(os.path.join(ROOT, 'work', f'en-{build}.csv'), encoding='utf-8-sig'))}
+trmap = {k: t for ns, k, t in json.load(open(os.path.join(ROOT, 'project', 'aa.x5tr'), encoding='utf-8'))['Tr']}
+ko_keys = sorted(k for k, t in enmap.items() if HANGUL.search(t) and trmap.get(k))
+keep_tmp = os.path.join(out, 'variantB-keep.generated.txt')
+with open(os.path.join(ROOT, 'glossary', 'variantB-keep.txt'), encoding='utf-8-sig') as f, open(keep_tmp, 'w', encoding='utf-8') as g:
+    excl = '(?!(?:' + '|'.join(map(re.escape, ko_keys)) + ')$)' if ko_keys else ''
+    for ln in f:
+        s = ln.rstrip('\n')
+        g.write((('^' + excl + s[1:]) if s.startswith('^') and excl else s) + '\n')
 for v in 'AB':
     d = os.path.join(out, v)
-    r = subprocess.run([X5, 'release', os.path.join(ROOT, 'project', 'aa.x5tr'), d, '--version', ver, '--build', build, '--app', app, '--variant', v],
+    r = subprocess.run([X5, 'release', os.path.join(ROOT, 'project', 'aa.x5tr'), d, '--version', ver, '--build', build, '--app', app, '--variant', v, '--keep', keep_tmp],
                        capture_output=True, text=True, encoding='utf-8')
     print(v, r.stdout.strip().splitlines()[-1] if r.stdout.strip() else r.stderr[-500:])
     if r.returncode: sys.exit(1)

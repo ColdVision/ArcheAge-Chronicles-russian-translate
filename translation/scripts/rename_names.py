@@ -32,7 +32,7 @@ MAP = {
 RX = re.compile(r'(?<![А-Яа-яЁё])(' + '|'.join(sorted(map(re.escape, MAP), key=len, reverse=True)) + r')(?![А-Яа-яЁё])')
 num = sys.argv[1]
 en = {}
-with open(os.path.join(ROOT, 'work', 'en-26495283.csv'), encoding='utf-8-sig', newline='') as f:
+with open(os.path.join(ROOT, 'work', 'en-26609794.csv'), encoding='utf-8-sig', newline='') as f:
     for r in csv.DictReader(f): en[r['key']] = r['text']
 prj = json.load(open(PRJ, encoding='utf-8'))
 out = []

@@ -7,13 +7,13 @@
 import argparse, collections, csv, json, os, re, sys
 sys.stdout.reconfigure(encoding='utf-8')
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CMS = os.path.join(os.path.dirname(ROOT), 'game-data-26495283', 'X5', 'Content', 'Design', 'CMS')
+CMS = os.path.join(os.path.dirname(ROOT), 'game-data-26609794', 'X5', 'Content', 'Design', 'CMS')
 OUT = os.path.join(ROOT, 'work', 'scenes')
 ap = argparse.ArgumentParser(); ap.add_argument('rx'); ap.add_argument('name'); ap.add_argument('--chunk', type=int, default=45000)
 a = ap.parse_args()
 
 en = {}
-with open(os.path.join(ROOT, 'work', 'en-26495283.csv'), encoding='utf-8-sig', newline='') as f:
+with open(os.path.join(ROOT, 'work', 'en-26609794.csv'), encoding='utf-8-sig', newline='') as f:
     for r in csv.DictReader(f): en[r['key']] = r['text']
 ru = {k: t for ns, k, t in json.load(open(os.path.join(ROOT, 'project', 'aa.x5tr'), encoding='utf-8'))['Tr']}
 model = {r['id']: r['fk_ClothesModelName'] for r in csv.DictReader(open(os.path.join(CMS, 'UnitModel.csv'), encoding='utf-8-sig'))}

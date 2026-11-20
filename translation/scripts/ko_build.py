@@ -11,7 +11,7 @@ a = ap.parse_args()
 H = re.compile('[가-힣]')
 DEV = re.compile(r'테스트|템플릿|test|Test|TEST|^z\d|_|\[|PC ?:|NPC ?:|연출|용$|용 |Zone|BP|플래그|컨디션|더미|임시|여유분|미사용|삭제|기획|개발|^\d|local|마커|DO NOT|id:|PAHSE|PHASE')
 en = {}
-with open(os.path.join(ROOT, 'work', 'en-26609794.csv'), encoding='utf-8-sig', newline='') as f:
+with open(os.path.join(ROOT, 'work', 'en-26803662.csv'), encoding='utf-8-sig', newline='') as f:
     for r in csv.DictReader(f): en[r['key']] = r['text']
 ru = {k: t for ns, k, t in json.load(open(os.path.join(ROOT, 'project', 'aa.x5tr'), encoding='utf-8'))['Tr']}
 cand = [k for k, t in en.items() if H.search(t) and not DEV.search(t) and not ru.get(k)]

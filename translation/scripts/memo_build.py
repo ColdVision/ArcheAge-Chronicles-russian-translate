@@ -7,7 +7,7 @@ OUT = os.path.join(ROOT, 'work', 'scenes')
 ap = argparse.ArgumentParser(); ap.add_argument('name'); ap.add_argument('--chunk', type=int, default=55000)
 a = ap.parse_args()
 en = {}
-with open(os.path.join(ROOT, 'work', 'en-26609794.csv'), encoding='utf-8-sig', newline='') as f:
+with open(os.path.join(ROOT, 'work', 'en-26803662.csv'), encoding='utf-8-sig', newline='') as f:
     for r in csv.DictReader(f): en[r['key']] = r['text']
 ru = {k: t for ns, k, t in json.load(open(os.path.join(ROOT, 'project', 'aa.x5tr'), encoding='utf-8'))['Tr']}
 memos = collections.defaultdict(list)

@@ -10,7 +10,7 @@ NPC = os.path.join(ROOT, 'npc')
 OUT = os.path.join(ROOT, os.environ.get('DFIX_DIR', os.path.join('work', 'dfix')))
 PRJ = os.path.join(ROOT, 'project', 'aa.x5tr')
 X5 = os.path.join(ROOT, '..', 'X5Tr.Cli', 'bin', 'Release', 'net10.0', 'x5tr.exe')
-EN_CSV = os.path.join(ROOT, 'work', 'en-26609794.csv')
+EN_CSV = os.path.join(ROOT, 'work', 'en-26803662.csv')
 
 def load():
     en = {}
@@ -96,7 +96,7 @@ def apply(num):
             old = ru.get(k, '')
             if Counter(TAGRE.findall(t)) != Counter(TAGRE.findall(en[k][1])):
                 bad.append((p, k, 'теги')); continue
-            if Counter(MARK.findall(t)) != Counter(MARK.findall(old)):
+            if old and Counter(MARK.findall(t)) != Counter(MARK.findall(old)):
                 bad.append((p, k, 'маркеры: ' + t)); continue
             out[k] = t  # последний файл побеждает (zz_Manual* — ручные правки — последними)
     for b in bad: print('ОТКЛОНЕНО', os.path.basename(b[0]), b[1], b[2])

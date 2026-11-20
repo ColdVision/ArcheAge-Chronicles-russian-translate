@@ -1,11 +1,11 @@
-# Ручной тест в игре — перевод 0.1.6
+# Ручной тест в игре — перевод 0.1.7
 
-**Архив:** `D:\Claude\aa-tools\ru-translation\releases\0.1.6\ArcheAge-Chronicles-RU-0.1.6.zip`
+**Архив:** `D:\Claude\aa-tools\ru-translation\releases\0.1.7\ArcheAge-Chronicles-RU-0.1.7.zip`
 
 ## Установка
 1. Закройте игру и лаунчер.
 2. Распакуйте архив в папку игры (Steam → ПКМ по игре → Управление → Показать локальные файлы) — рядом с `ArcheAgeChronicles.exe` появятся `Enable Full Russian.cmd`, `Enable English names.cmd`, `Update-Russian.cmd`, `Remove-Russian.cmd`, `README.md` и папки `tools`, `variants`.
-3. Запустите `Enable Full Russian.cmd` (версия A). Ожидается «Готово! Перевод версии 0.1.6 установлен…» и строка о покрытии 50 497 из 55 067.
+3. Запустите `Enable Full Russian.cmd` (версия A). Ожидается «Готово! Перевод версии 0.1.7 установлен…» и строка о покрытии 50 497 из 55 067.
 4. Проверьте, что появился файл `X5\Content\Localization\String\ru\String.locres` (≈6,8 МБ), а в `%LOCALAPPDATA%\X5\Saved\Config\Windows\GameUserSettings.ini` в секции `[Internationalization]` стоит `Culture=ru`.
 
 ## Что посмотреть в игре

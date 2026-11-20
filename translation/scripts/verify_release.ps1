@@ -1,5 +1,5 @@
 ﻿# Проверки локального релиза без игры (обе версии A и B). Запуск: powershell -ExecutionPolicy Bypass -File scripts\verify_release.ps1 -Version 0.1.0
-param([string]$Version = '0.1.6', [long]$Build = 26803662, [string]$GameData = 'game-data-26803662')
+param([string]$Version = '0.1.7', [long]$Build = 26803662, [string]$GameData = 'game-data-26803662')
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $at = Split-Path $root -Parent
@@ -29,7 +29,9 @@ foreach ($v in 'A', 'B') {
     $mk = @($RU | Where-Object { $_.text -match '\{\{' }).Count
     Check "$v`: нет необработанных маркеров {{...}} (найдено: $mk)" ($mk -eq 0)
     $cyr = @($RU | Where-Object { $_.text -match '[Ѐ-ӿ]' }).Count
-    Check "$v`: строк с кириллицей: $cyr" ($cyr -gt 35000)
+    # в B больше английских названий (предметы, локации, объекты мира, точки на карте), поэтому порог ниже
+    $minCyr = if ($v -eq 'B') { 30000 } else { 35000 }
+    Check "$v`: строк с кириллицей: $cyr" ($cyr -gt $minCyr)
     $m = Get-Content (Join-Path $rel "github\manifest-$v.json") -Raw -Encoding UTF8 | ConvertFrom-Json
     Check "$v`: manifest — buildid $Build, AppID 3218230, вариант $v" ($m.game_build -eq $Build -and $m.steam_app_id -eq 3218230 -and $m.variant -eq $v)
     Check "$v`: manifest sha256 = String-$v.locres" ($m.files[0].sha256 -eq (Get-FileHash $file -Algorithm SHA256).Hash.ToLower())

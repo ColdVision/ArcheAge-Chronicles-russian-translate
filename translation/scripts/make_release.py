@@ -32,6 +32,12 @@ with open(os.path.join(ROOT, 'glossary', 'variantB-keep.txt'), encoding='utf-8-s
     for ln in f:
         s = ln.rstrip('\n')
         g.write((('^' + excl + s[1:]) if s.startswith('^') and excl else s) + '\n')
+    # Объекты мира, названные по предмету (кусты и жилы для сбора, мебель дома, урожай): в B английские, как и сам предмет.
+    items = {t.strip() for k, t in enmap.items() if re.match(r'TXT_ITEM_\d+_NAME$', k) and len(t.strip()) > 3 and not HANGUL.search(t)}
+    if items:
+        irx = re.compile(r'(?<![A-Za-z])(?:' + '|'.join(sorted(map(re.escape, items), key=len, reverse=True)) + r')(?![A-Za-z])')
+        dk = sorted(k for k, t in enmap.items() if re.match(r'TXT_DOODAD(PHASE)?_[\d_]+_NAME$', k) and not HANGUL.search(t) and irx.search(t))
+        if dk: g.write('# объекты мира с названием предмета (сгенерировано)\n^(?:' + '|'.join(map(re.escape, dk)) + ')$\n')
 for v in 'AB':
     d = os.path.join(out, v)
     r = subprocess.run([X5, 'release', os.path.join(ROOT, 'project', 'aa.x5tr'), d, '--version', ver, '--build', build, '--app', app, '--variant', v, '--keep', keep_tmp],
